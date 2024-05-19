@@ -49,7 +49,11 @@ namespace TodoList.Api.Controllers
         {
             if (id != todoItem.Id)
             {
-                return BadRequest();
+                return BadRequest("Mismatch of ID");
+            }
+            else if (!TodoItemIdExists(id))
+            {
+                return NotFound("Item not found");
             }
 
             _context.Entry(todoItem).State = EntityState.Modified;
@@ -60,14 +64,7 @@ namespace TodoList.Api.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!TodoItemIdExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                throw;
             }
 
             return NoContent();
@@ -77,7 +74,15 @@ namespace TodoList.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> PostTodoItem(TodoItem todoItem)
         {
-            if (string.IsNullOrEmpty(todoItem?.Description))
+            if (todoItem == null)
+            {
+                return BadRequest("Item is empty");
+            }
+            else if (TodoItemIdExists(todoItem.Id))
+            {
+                return BadRequest("GUID already exists in DB");
+            }
+            else if (string.IsNullOrEmpty(todoItem.Description))
             {
                 return BadRequest("Description is required");
             }
@@ -90,7 +95,7 @@ namespace TodoList.Api.Controllers
             await _context.SaveChangesAsync();
              
             return CreatedAtAction(nameof(GetTodoItem), new { id = todoItem.Id }, todoItem);
-        } 
+        }
 
         private bool TodoItemIdExists(Guid id)
         {
