@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using TodoList.Api.Models;
 
 namespace TodoList.Api.Controllers
 {
@@ -48,7 +49,11 @@ namespace TodoList.Api.Controllers
         {
             if (id != todoItem.Id)
             {
-                return BadRequest();
+                return BadRequest("Mismatch of ID");
+            }
+            else if (!TodoItemIdExists(id))
+            {
+                return NotFound("Item not found");
             }
 
             _context.Entry(todoItem).State = EntityState.Modified;
@@ -59,14 +64,7 @@ namespace TodoList.Api.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!TodoItemIdExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                throw;
             }
 
             return NoContent();
@@ -76,20 +74,30 @@ namespace TodoList.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> PostTodoItem(TodoItem todoItem)
         {
-            if (string.IsNullOrEmpty(todoItem?.Description))
+            if (todoItem == null)
+            {
+                return BadRequest("Item is empty");
+            }
+            else if (string.IsNullOrEmpty(todoItem.Description))
             {
                 return BadRequest("Description is required");
             }
             else if (TodoItemDescriptionExists(todoItem.Description))
             {
                 return BadRequest("Description already exists");
-            } 
+            }
+
+            // Validate GUID
+            if (todoItem.Id == null || todoItem.Id == Guid.Empty || !Guid.TryParse(todoItem.Id.ToString(), out _))
+            {
+                todoItem.Id = Guid.NewGuid();
+            }
 
             _context.TodoItems.Add(todoItem);
             await _context.SaveChangesAsync();
              
             return CreatedAtAction(nameof(GetTodoItem), new { id = todoItem.Id }, todoItem);
-        } 
+        }
 
         private bool TodoItemIdExists(Guid id)
         {

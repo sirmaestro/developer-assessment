@@ -9,11 +9,11 @@
     }
   },
   "profiles": {
-    "IIS Express": {
+    "Swagger": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      //"launchUrl": "swagger",
-      "launchUrl": "api/todoitems",
+      "launchUrl": "swagger/index.html",
+      //"launchUrl": "api/todoitems",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
