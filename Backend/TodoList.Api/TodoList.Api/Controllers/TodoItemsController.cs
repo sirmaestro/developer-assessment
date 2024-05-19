@@ -78,10 +78,6 @@ namespace TodoList.Api.Controllers
             {
                 return BadRequest("Item is empty");
             }
-            else if (TodoItemIdExists(todoItem.Id))
-            {
-                return BadRequest("GUID already exists in DB");
-            }
             else if (string.IsNullOrEmpty(todoItem.Description))
             {
                 return BadRequest("Description is required");
@@ -89,7 +85,13 @@ namespace TodoList.Api.Controllers
             else if (TodoItemDescriptionExists(todoItem.Description))
             {
                 return BadRequest("Description already exists");
-            } 
+            }
+
+            // Validate GUID
+            if (todoItem.Id == null || todoItem.Id == Guid.Empty || !Guid.TryParse(todoItem.Id.ToString(), out _))
+            {
+                todoItem.Id = Guid.NewGuid();
+            }
 
             _context.TodoItems.Add(todoItem);
             await _context.SaveChangesAsync();
